@@ -5,7 +5,7 @@ metadata:
   labels:
     app: auth
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: auth
@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: auth
-          image: sweasytech/auth
+          image: nilay103/k8sauth
           ports:
             - containerPort: 5000
           envFrom:
