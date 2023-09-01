@@ -3,7 +3,7 @@ from functools import wraps
 
 from wtforms.validators import ValidationError
 
-from response import ErrorResponse
+from services.response import ErrorResponse
 
 
 def handle_api_exception(f):

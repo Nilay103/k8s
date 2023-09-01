@@ -3,7 +3,7 @@ from typing import Union
 from typing import Dict
 
 from wtforms.validators import ValidationError
-from response import ErrorResponse, SuccessResponse
+from services.response import ErrorResponse, SuccessResponse
 
 
 def check_user_login(request) -> Union[ErrorResponse, SuccessResponse]:
