@@ -29,7 +29,10 @@ def login():
     """
     auth = request.authorization
     if not auth:
-        return "missing credentials", 401
+        return ErrorResponse(
+                msg="missing credentials",
+                status=401
+            )
 
     # check db for username and password
     cur = mysql.connection.cursor()
@@ -83,7 +86,7 @@ def validate():
 
     encoded_jwt = encoded_jwt.split(" ")[1]
     decoded = jwt.decode(
-        encoded_jwt, os.environ.get("JWT_SECRET"), algorithms=["HS256"]
+        encoded_jwt, os.environ.get("JWT_SECRET", "default"), algorithms=["HS256"]
     )
     return SuccessResponse(
         data={
