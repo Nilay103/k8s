@@ -13,6 +13,7 @@ from wtforms import ValidationError
 
 from services.auth import check_user_login, validate_token
 from services.decorators import handle_api_exception
+from services.notifications import send_email_ns
 from services.response import ErrorResponse, SuccessResponse
 
 server = Flask(__name__)
@@ -72,6 +73,11 @@ def upload_file(**kwargs):
         f = open(audio_file_path, "rb")
         data = f.read()
         fid = db_mp3s.put(data)
+
+        send_email_ns(payload_data={
+            "mp3_fid": str(fid),
+            "username": kwargs['user']['username']
+        })
         f.close()
         os.remove(audio_file_path)
     except Exception:
