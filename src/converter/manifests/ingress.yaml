@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: gateway-ingress
+  name: converter-ingress
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
@@ -16,6 +16,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: gateway
+                name: converter
                 port:
                   number: 8080

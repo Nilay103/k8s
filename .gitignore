@@ -133,6 +133,5 @@ dmypy.json
 .pyre/
 /src/.idea/
 /src/notification/venv/
-/src/gateway/venv/
 /src/converter/venv/
 /src/auth/venv/
