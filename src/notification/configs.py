@@ -1,4 +1,5 @@
 import os
 
-SENDER_ADDRESS = os.environ.get("GMAIL_ADDRESS", "nilay.shah@innovaccer.com")
-GMAIL_PWD = os.environ.get("GMAIL_PASSWORD", "mlygqcngtxuindeh")
+SENDER_ADDRESS = os.environ.get("GMAIL_ADDRESS")
+GMAIL_PWD = os.environ.get("GMAIL_PASSWORD")
+MONGO_HOST = os.environ.get("MONGO_HOST")

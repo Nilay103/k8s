@@ -16,10 +16,9 @@ def send_email_ns(message, db_mp3):
 
     msg = MIMEMultipart()
 
-    msg["Subject"] = "MP3 file download is now ready! "
+    msg["Subject"] = f"MP3 file {mp3_fid} download is now ready! "
     msg["From"] = sender_address
     msg["To"] = receiver_address
-    msg["Text"] = f"mp3 file_id: {mp3_fid} is now ready!"
 
     file_data = db_mp3.get(file_id=ObjectId(mp3_fid))
     msg.attach(MIMEAudio(file_data.read(), _subtype="mp3"))

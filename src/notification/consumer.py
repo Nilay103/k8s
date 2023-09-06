@@ -2,13 +2,14 @@ import gridfs
 from flask import Flask, request
 from flask_pymongo import PyMongo
 
+from configs import MONGO_HOST
 from services.decorators import handle_api_exception
 from services.response import SuccessResponse
 from services.send_email import send_email_ns
 
 server = Flask(__name__)
 
-mongo_mp3 = PyMongo(server, uri="mongodb://localhost:27017/mp3s")
+mongo_mp3 = PyMongo(server, uri=f"mongodb://{MONGO_HOST}:27017/mp3s")
 db_mp3s = gridfs.GridFS(mongo_mp3.db)
 
 

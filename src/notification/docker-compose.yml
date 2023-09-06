@@ -1,0 +1,17 @@
+version: "3.3"
+services:
+  ns:
+    container_name: ns
+    build:
+      context: .
+    env_file: .env
+    ports:
+      - "5055:5055"
+    image: nilay103/k8notifications
+    networks:
+      - external_network
+
+networks:
+  external_network:
+    name: local
+    external: true
