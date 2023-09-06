@@ -10,4 +10,6 @@ COPY ./requirements.txt /app
 RUN pip install --no-cache-dir --requirement /app/requirements.txt
 COPY . /app
 
+EXPOSE 5055
+
 CMD ["python3", "consumer.py"]

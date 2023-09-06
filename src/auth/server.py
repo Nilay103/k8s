@@ -1,19 +1,27 @@
-import jwt, datetime, os
-from flask import request
+import datetime
 
+import jwt
+from flask import Flask
+from flask import request
+from flask_mysqldb import MySQL
+
+from configs import MYSQL_PASSWORD
+from configs import MYSQL_PORT
+from configs import MYSQL_USER
+from configs import MYSQL_DB
+from configs import MYSQL_HOST
+from configs import JWT_SECRET
 from decorators import handle_api_exception
 from response import SuccessResponse, ErrorResponse
-from flask import Flask
-from flask_mysqldb import MySQL
 
 server = Flask(__name__)
 
 # config
-server.config["MYSQL_HOST"] = "db"
-server.config["MYSQL_USER"] = "root"
-server.config["MYSQL_PASSWORD"] = "root"
-server.config["MYSQL_DB"] = "auth"
-server.config["MYSQL_PORT"] = 3306
+server.config["MYSQL_HOST"] = MYSQL_HOST
+server.config["MYSQL_USER"] = MYSQL_USER
+server.config["MYSQL_PASSWORD"] = MYSQL_PASSWORD
+server.config["MYSQL_DB"] = MYSQL_DB
+server.config["MYSQL_PORT"] = MYSQL_PORT
 
 mysql = MySQL()
 mysql.init_app(server)
@@ -30,9 +38,9 @@ def login():
     auth = request.authorization
     if not auth:
         return ErrorResponse(
-                msg="missing credentials",
-                status=401
-            )
+            msg="missing credentials",
+            status=401
+        )
 
     # check db for username and password
     cur = mysql.connection.cursor()
@@ -55,7 +63,7 @@ def login():
                 data={
                     "auth_token": createJWT(
                         username=auth.username,
-                        secret=os.environ.get("JWT_SECRET", "default"),
+                        secret=JWT_SECRET,
                         is_admin=True
                     )
                 },
@@ -86,7 +94,7 @@ def validate():
 
     encoded_jwt = encoded_jwt.split(" ")[1]
     decoded = jwt.decode(
-        encoded_jwt, os.environ.get("JWT_SECRET", "default"), algorithms=["HS256"]
+        encoded_jwt, JWT_SECRET, algorithms=["HS256"]
     )
     return SuccessResponse(
         data={
@@ -112,7 +120,7 @@ def createJWT(username: str, secret: str, is_admin: bool = False):
         {
             "username": username,
             "exp": datetime.datetime.now(tz=datetime.timezone.utc)
-            + datetime.timedelta(days=1),
+                   + datetime.timedelta(days=1),
             "iat": datetime.datetime.utcnow(),
             "admin": is_admin,
         },

@@ -11,10 +11,11 @@ from flask_pymongo import PyMongo
 from moviepy.editor import VideoFileClip
 from wtforms import ValidationError
 
+from configs import MONGO_HOST, REDIS_HOST, MONGO_PORT
 from services.auth import check_user_login, validate_token
 from services.decorators import handle_api_exception
 from services.notifications import send_email_ns
-from services.response import ErrorResponse, SuccessResponse
+from services.response import SuccessResponse
 
 server = Flask(__name__)
 
@@ -34,14 +35,14 @@ def celery_init_app(app: Flask) -> Celery:
 
 server.config.from_mapping(
     CELERY=dict(
-        broker_url="redis://localhost",
-        result_backend="redis://localhost",
+        broker_url=f"redis://{REDIS_HOST}",
+        result_backend=f"redis://{REDIS_HOST}",
         task_ignore_result=True,
     ),
 )
 
-mongo_video = PyMongo(server, uri="mongodb://localhost:27017/videos")
-mongo_mp3 = PyMongo(server, uri="mongodb://localhost:27017/mp3s")
+mongo_video = PyMongo(server, uri=f"mongodb://{MONGO_HOST}:{MONGO_PORT}/videos")
+mongo_mp3 = PyMongo(server, uri=f"mongodb://{MONGO_HOST}:{MONGO_PORT}/mp3s")
 
 db_videos = gridfs.GridFS(mongo_video.db)
 db_mp3s = gridfs.GridFS(mongo_mp3.db)
@@ -50,42 +51,37 @@ celery_app = celery_init_app(server)
 
 @shared_task(ignore_result=False)
 def upload_file(**kwargs):
-    print(kwargs)
     try:
-        vid_file_path = kwargs.get("file_path")
-        vid_file = None
-        with open(vid_file_path, "rb") as file_obj:
-            vid_file = file_obj
-            fid = db_videos.put(vid_file.read())
+        file_data = kwargs["file_data"]
+        file_name = kwargs["file_name"]
 
-        if not vid_file:
-            return
+        # write data in temp file.
+        vid_file_path = tempfile.gettempdir() + "/" + file_name
+        with open(vid_file_path, "wb") as file_obj:
+            file_obj.write(file_data)
 
-        # add video contents to empty file
+        video_id = db_videos.put(file_data)
+
         # create audio from temp video file
-        audio = VideoFileClip(vid_file.name).audio
+        audio = VideoFileClip(vid_file_path).audio
 
         # write audio to the file
-        audio_file_path = tempfile.gettempdir() + f"/{fid}.mp3"
+        audio_file_path = tempfile.gettempdir() + f"/{video_id}.mp3"
         audio.write_audiofile(audio_file_path)
 
         # save file to mongo
         f = open(audio_file_path, "rb")
         data = f.read()
-        fid = db_mp3s.put(data)
+        audio_id = db_mp3s.put(data)
 
         send_email_ns(payload_data={
-            "mp3_fid": str(fid),
+            "mp3_fid": str(audio_id),
             "username": kwargs['user']['username']
         })
         f.close()
         os.remove(audio_file_path)
     except Exception:
         print(traceback.format_exc())
-    finally:
-        if vid_file:
-            vid_file.close()
-        os.remove(kwargs.get('file_path'))
 
 
 @server.route("/celery_check", methods=["GET"])
@@ -105,24 +101,17 @@ def login():
 def upload():
     access_data = validate_token(request)
 
-    if access_data["data"]["attributes"]["admin"]:
-        if len(request.files) > 1 or len(request.files) < 1:
-            raise ValidationError(message="Exactly 1 file required")
+    if len(request.files) > 1 or len(request.files) < 1:
+        raise ValidationError(message="Exactly 1 file required")
 
-        for _, f in request.files.items():
-            temp_file_path = tempfile.gettempdir() + f.filename
-            with open(temp_file_path, "wb") as file_data:
-                file_data.write(f.read())
+    for _, f in request.files.items():
+        upload_file.delay(**{
+            "file_data": f.read(),
+            "file_name": f.filename,
+            "user": access_data["data"]["attributes"]
+        })
 
-            upload_file.delay(**{
-                "file_path": temp_file_path,
-                "file_name": f.filename,
-                "user": access_data["data"]["attributes"]
-            })
-
-        return SuccessResponse(msg="Video upload request accepted", status=200)
-    else:
-        return ErrorResponse(msg="Unauthorized", status=401)
+    return SuccessResponse(msg="Video upload request accepted", status=200)
 
 
 @server.route("/download", methods=["GET"])

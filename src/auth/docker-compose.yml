@@ -1,6 +1,7 @@
-version: "2"
+version: "3.3"
 services:
-  app:
+  auth:
+    container_name: auth
     build:
       context: .
     links:
@@ -8,6 +9,8 @@ services:
     ports:
       - "5000:5000"
     image: nilay103/k8sauth
+    networks:
+      - external_network
   db:
     image: mysql:5.7
     ports:
@@ -16,3 +19,10 @@ services:
       MYSQL_ROOT_PASSWORD: root
     volumes:
       - ./db:/docker-entrypoint-initdb.d/:ro
+    networks:
+      - external_network
+
+networks:
+  external_network:
+    name: local
+    external: true

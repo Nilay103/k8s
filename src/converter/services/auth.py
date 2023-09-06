@@ -3,6 +3,7 @@ from typing import Union
 from typing import Dict
 
 from wtforms.validators import ValidationError
+from configs import AUTH_SVC_ADDRESS
 from services.response import ErrorResponse, SuccessResponse
 
 
@@ -17,8 +18,7 @@ def check_user_login(request) -> Union[ErrorResponse, SuccessResponse]:
     basicAuth = (auth.username, auth.password)
 
     response = requests.post(
-        # f"http://{os.environ.get('AUTH_SVC_ADDRESS')}/login", auth=basicAuth TODO
-        "http://localhost:5000/login", auth=basicAuth
+        f"http://{AUTH_SVC_ADDRESS}/login", auth=basicAuth
     )
     return SuccessResponse(
         data=response.json(),
@@ -36,8 +36,7 @@ def validate_token(request) -> Dict:
         raise ValidationError(message="missing credentials")
 
     response = requests.post(
-        # f"http://{os.environ.get('AUTH_SVC_ADDRESS')}/validate", TODO
-        url=f"http://localhost:5000/validate",
+        f"http://{AUTH_SVC_ADDRESS}/validate",
         headers={"Authorization": _token},
     )
 
