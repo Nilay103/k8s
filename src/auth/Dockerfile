@@ -1,4 +1,4 @@
-FROM python:3.8.5-slim-buster
+FROM python:3.10.8-slim-bullseye
 USER root
 
 RUN apt-get update \
