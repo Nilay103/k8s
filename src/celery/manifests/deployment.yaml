@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-worker
+  labels:
+    app: celery-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: celery-worker
+  template:
+    metadata:
+      labels:
+        app: celery-worker
+    spec:
+      containers:
+      - name: worker
+        image: nilay103/k8sconverter
+        imagePullPolicy: Always
+        envFrom:
+          - configMapRef:
+              name: celery-configmap
+        command: ["celery"]
+        args: ["-A", "server", "worker", "--loglevel=info"]
+        resources:
+          limits:
+            cpu: 100m
+          requests:
+            cpu: 60m

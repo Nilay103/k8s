@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notification
+  name: ns
   labels:
-    app: notification
+    app: ns
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: notification
+      app: ns
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -16,13 +16,13 @@ spec:
   template:
     metadata:
       labels:
-        app: notification
+        app: ns
     spec:
       containers:
-        - name: notification
+        - name: ns
           image: nilay103/k8snotifications
           envFrom:
             - configMapRef:
-                name: notification-configmap
+                name: ns-configmap
             - secretRef:
-                name: notification-secret
+                name: ns-secret

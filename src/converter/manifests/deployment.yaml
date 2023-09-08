@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: converter
-          image: nilay103/k8sgateway
+          image: nilay103/k8sconverter
           envFrom:
             - configMapRef:
                 name: converter-configmap
